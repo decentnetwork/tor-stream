@@ -92,6 +92,17 @@ impl TorStream {
         Socks5Stream::connect(tor_proxy, destination).map(|stream| TorStream(stream.into_inner()))
     }
 
+    #[inline]
+    pub fn split(self) -> io::Result<(TcpStream, TcpStream)> {
+        Ok((self.0.try_clone()?, self.0))
+    }
+
+    #[inline]
+    pub fn split_boxed(self) -> io::Result<(Box<TcpStream>, Box<TcpStream>)> {
+        let (reader, writer) = self.split()?;
+        Ok((Box::new(reader), Box::new(writer)))
+    }
+
     /// Gets a reference to the underlying TCP stream.
     #[inline]
     pub fn get_ref(&self) -> &TcpStream {
